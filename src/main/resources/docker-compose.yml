@@ -1,0 +1,41 @@
+# docker-compose.yml
+version: '2'
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus_db:/var/lib/prometheus
+      - ./rules.yml:/etc/prometheus/rules.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - '9090:9090'
+    depends_on:
+      - alertmanager
+
+  node-exporter:
+    image: prom/node-exporter
+    ports:
+      - '9100:9100'
+
+  grafana:
+    image: grafana/grafana
+    user: "0"
+    volumes:
+      - ./grafana_db:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    ports:
+      - '3000:3000'
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    ports:
+      - '9093:9093'
